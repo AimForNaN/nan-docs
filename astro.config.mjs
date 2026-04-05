@@ -4,6 +4,8 @@ import starlight from '@astrojs/starlight';
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://aimfornan.github.io',
+	base: '/nan-docs',
 	integrations: [
 		starlight({
 			title: 'NaN',
