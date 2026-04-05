@@ -1,0 +1,120 @@
+---
+title: Routing
+---
+
+Routing in NaN is managed by the `NaN\App\Middleware\Router` middleware.
+It is a PSR-15-compatible middleware.
+
+```php
+use NaN\App\Middleware\Router;
+
+$router = new Router();
+```
+
+The `Router` instance tries to be unopinionated.
+It achieves this by accepting a PSR-15-compatible class as its single dependency.
+
+## Registering routes.
+
+The default way to register routes in NaN is with the `RoutesCollection` and `Route` classes.
+
+```php
+use NaN\App\Middleware\{
+	MiddlewareCollection,
+	Router,
+	Router\Route,
+	Router\RoutesCollection,
+};
+use Psr\Http\Message\ResponseInterface;
+
+
+$router = new Router(new RoutesCollection(
+	new Route(
+		'/posts', // static path
+		function (): ResponseInterface {}, // handler
+		'posts', // name
+		new MiddlewareCollection(), // middleware
+	),
+	new Route(
+		'/posts/{id}', // parameterized path
+		function (int $id): ResponseInterface {}, // handler
+		'post', // name
+	),
+));
+```
+
+Internally, `RoutesCollection` uses a radix trie.
+Performance-wise, there shouldn't be any concerns.
+Benchmark results measure registering 1000 routes occurring in about 1 millisecond,
+and looking up a single route occurs within microseconds, whether static or parameterized.
+
+When using parameterized routes,
+the part within the curly brackets is the parameter's name.
+The parameter name must obey PHP variable naming rules,
+since they will be autowired into their handlers.
+Since parameters are designed to be simple, they will match anything wherever used.
+
+## Controllers
+
+NaN routers do not support specifying HTTP methods for routes.
+Therefore, using closures for handlers will match against all known HTTP methods.
+To handle HTTP methods individually, you'll need to make use of controllers.
+NaN provides several interfaces and traits that you should be aware of.
+
+Currently, to create a controller you'll need to implement the `ControllerInterface` interface.
+To simplify development, we provide a matching `ControllerTrait` trait.
+
+```php
+use NaN\App\Controller\Interfaces\ControllerInterface;
+use NaN\App\Controller\Traits\ControllerTrait;
+
+class HomeController implements ControllerInterface {
+	use ControllerTrait;
+}
+
+$route = new Route('/', HomeController::class, 'home');
+```
+
+The `ControllerTrait` trait judges your controllers by the controller interfaces they implement.
+It also provides placeholder methods for `GET` and `HEAD`.
+
+The following interfaces, along with their matching traits, are available.
+
+```php
+use NaN\App\Controller\Interfaces\{
+	ControllerInterface,
+	ConnectControllerInterface,
+	DeleteControllerInterface,
+	OptionsControllerInterface,
+	PatchControllerInterface,
+	PostControllerInterface,
+	PutControllerInterface,
+	TraceControllerInterface,
+};
+use NaN\App\Controller\Traits\{
+	ControllerTrait,
+	ConnectControllerTrait,
+	DeleteControllerTrait,
+	OptionsControllerTrait,
+	PatchControllerTrait,
+	PostControllerTrait,
+	PutControllerTrait,
+	TraceControllerTrait,
+};
+```
+#### Dependency injection
+
+Method parameters are left empty for the sake of dependency injection.
+In order to satisfy the interface inheritance requirements, however,
+you'll need to make all the parameters optional.
+
+```php
+class UserController implements ControllerInterface {
+	use ControllerTrait;
+
+	public function get(?int $id = null): ResponseInterface {
+	}
+}
+
+$route = new Route('/users/{id}', UserController::class, 'user');
+```

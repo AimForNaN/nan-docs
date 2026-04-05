@@ -1,0 +1,97 @@
+---
+title: Application
+description: \Nan\App.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+At the core of every NaN application stands `NaN\App`.
+It is a PSR-15-compatible request handler with support for services and middleware.
+Upon running the application, all request data will be passed on to the middleware in exchange for a response.
+The response will, therefrom, be sent to the client.
+
+```php
+use NaN\App;
+
+$app = new App();
+
+$app->run();
+```
+
+## Installation
+
+```shell
+composer require aimfornan/nan
+```
+
+## Services
+
+Services can be optionally registered through the `App` constructor.
+It will accept any PSR-11-compatible containers.
+NaN provides the `Container` class from the `NaN\DI` namespace.
+You can learn more about it under [dependency injection](/components/dependency-injection/).
+
+```php
+use NaN\DI\Container;
+
+$app = new App(new Container([
+	CustomServiceInterface::class => CustomService::class,
+]));
+```
+
+Any interfaces and classes registered through the `Container` instance will be injected into the routes that the `App` instance manages.
+Therefore, any service you want access to from your routes should be registered through the `App` instance.
+
+## Middleware
+
+Middleware can be optionally registered through the `App` constructor.
+It will accept any PSR-15-compatible middleware.
+
+<Tabs>
+	<TabItem label="Router">
+```php
+use NaN\App\Middleware\Router;
+
+$router = new Router();
+
+$app = new App($services, $router);
+```
+	</TabItem>
+	<TabItem label="MiddlewareCollection">
+```php
+use NaN\App\Middleware\{MiddlewareCollection, Router};
+
+$middleware = new MiddlewareCollection(
+	new Router(),
+);
+
+$app = new App($services, $middleware);
+```
+	</TabItem>
+</Tabs>
+
+#### Sharing data between middleware
+
+Sometimes you'll need your routes to access data created by your middleware.
+The `App` instance provides access to the services through the request's attributes.
+When sharing data, we recommend using delegates.
+This way we won't mess with any of the other registered services.
+
+```php
+use NaN\DI\Interfaces\ContainerDelegatesInterface;
+
+/** @var Psr\Http\Message\ServerRequestInterface $request */
+$services = $request->getAttribute(
+	Psr\Container\ContainerInterface::class
+);
+
+if (
+	$services instanceof ContainerDelegatesInterface
+) {
+	$container = new NaN\DI\Container([
+		// Your middleware's services here...
+	]);
+
+	$services->addDelegates($container);
+}
+```
