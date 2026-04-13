@@ -36,22 +36,22 @@ All driver classes inherit from the `\NaN\Database\Drivers\Interfaces\DriverInte
 
 ### SQL
 
-NaN provides basic SQL support out-of-the-box under the `NaN\Database\Sql` namespace.
+NaN provides basic SQL support under the `NaN\Database\Sql` namespace.
 
 To create a connection to the database, first instantiate a `NaN\Database\Sql\Drivers\SqlDriver` instance.
 Then call its `createConnection` method, providing it with the information needed to construct a PDO connection.
-The configuration is structured to match the parameters of the `\PDO::connect` method.
-The prefix being set in the first list element of the DSN.
+The configuration must match the parameters of the `\PDO::connect` method.
+Regarding the DSN prefix, it is to be set in the first list element.
 
 <Tabs>
 	<TabItem label="MySQL example">
 ```php
-use NaN\Database\Drivers\SqlDriver;
+use NaN\Database\Sql\Drivers\SqlDriver;
 
 $mysql_driver = new SqlDriver();
 $mysql_connection = $mysql_driver->createConnection([
 	'dsn' => [
-		'mysql' // prefix
+		'mysql' // prefix; zero index!
 		'host' => 'localhost',
 		'port' => 3306,
 		'charset' => 'utf8mb4',
@@ -66,7 +66,7 @@ $mysql_connection = $mysql_driver->createConnection([
 	</TabItem>
 	<TabItem label="SQLite example">
 ```php
-use NaN\Database\Drivers\SqlDriver;
+use NaN\Database\Sql\Drivers\SqlDriver;
 
 $sqlite_driver = new SqlDriver();
 $sqlite_connection = $sqlite_driver->createConnection([
@@ -91,7 +91,15 @@ $connection->raw(/* raw query */);
 All `\NaN\Database\Drivers\Interfaces\DriverInterface` classes support constructing their own query builders.
 You can obtain an instance of their query builder by calling the `createQueryBuilder` method.
 
-Query builders support typical CRUD operations via the `patch`, `pull`, `purge`, and `push`.
+```php
+/**
+ * @var \NaN\Database\Drivers\Interfaces\DriverInterface $driver
+ * @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder
+ */
+$query_builder = $driver->createQueryBuilder();
+```
+
+Query builders support typical CRUD operations via the `patch`, `pull`, `purge`, and `push` methods.
 
 | CRUD operation | NaN operation | SQL equivalent |
 |----------------|---------------|----------------|
@@ -100,6 +108,7 @@ Query builders support typical CRUD operations via the `patch`, `pull`, `purge`,
 | UPDATE         | PATCH         | UPDATE         |
 | DELETE         | PURGE         | DELETE         |
 
+How these operate exactly are left up to the implementation.
 
 #### SQL
 
@@ -128,7 +137,7 @@ Though query builder statements will assume prepared statements,
 the same rules apply here for prepared statements as when executing raw queries.
 
 To execute statements created by the SQL query builder,
-you'll need to call the `exec` method from the SQL connection instance.
+you'll want to call the `exec` method from the SQL connection instance.
 
 ```php
 /** @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder */
@@ -141,7 +150,31 @@ $pull_statement = $query_builder->pull();
 $sql_connection->exec($pull_statement);
 ```
 
-In both `exec` and `raw` cases, a `\PDOStatement` object is returned if the query succeeds.
+Alternatively, you can use `\NaN\Database\Sql\Query\Renderers\SqlQueryRenderer` to render statements to a string.
+
+```php
+use \NaN\Database\Sql\Query\Renderers\SqlQueryRenderer;
+
+$sql_renderer = new SqlQueryRenderer();
+
+/**
+ * @var \NaN\Database\Sql\Query\Builders\Interfaces\SqlQueryBuilderInterface $query_builder
+ * @var \NaN\Database\Sql\Query\Statements\Interfaces\SqlStatementInterface $pull_statement
+ */
+$pull_statement = $query_builder->pull();
+
+/** @var \Nan\Database\Sql\SqlConnection $sql_connection */
+$sql_connection->raw(
+	$sql_renderer->render(
+		$pull_statement->toAst(),
+	),
+	$pull_statement->getBindings(),
+);
+```
+
+In both `exec` and `raw` cases, a `\PDOStatement` object is returned if the query succeeds,
+and false if it fails.
+Depending on the PDO configuration, it may also throw an exception.
 
 <Tabs>
 	<TabItem label="exec">
@@ -157,3 +190,11 @@ $pdo_statement = $sql_connection->raw(/* raw query string */);
 ```
 	</TabItem>
 </Tabs>
+
+##### Patch
+
+##### Pull
+
+##### Purge
+
+##### Push
