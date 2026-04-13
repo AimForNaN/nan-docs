@@ -1,0 +1,159 @@
+---
+title: Database
+description: \NaN\Database
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+NaN provides its own database abstraction based around PHP's PDO, under the `NaN\Database` namespace.
+For databases not supported by PDO you'll have to write your own PDO-based driver.
+
+## Installation
+
+Since the API is still experimental, you'll need to specify the GitHub repository in your composer configuration.
+
+```json title="composer.json"
+{
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/AimForNaN/nan-db.git"
+        }
+    ]
+}
+```
+
+Afterwards, you can run the following command to install it via composer.
+
+```shell
+composer require aimfornan/nan-db:dev-main
+```
+
+## Drivers
+
+In NaN, database drivers are used to create connections and query builders that are specific to the database in use.
+All driver classes inherit from the `\NaN\Database\Drivers\Interfaces\DriverInterface` interface.
+
+### SQL
+
+NaN provides basic SQL support out-of-the-box under the `NaN\Database\Sql` namespace.
+
+To create a connection to the database, first instantiate a `NaN\Database\Sql\Drivers\SqlDriver` instance.
+Then call its `createConnection` method, providing it with the information needed to construct a PDO connection.
+The configuration is structured to match the parameters of the `\PDO::connect` method.
+The prefix being set in the first list element of the DSN.
+
+<Tabs>
+	<TabItem label="MySQL example">
+```php
+use NaN\Database\Drivers\SqlDriver;
+
+$mysql_driver = new SqlDriver();
+$mysql_connection = $mysql_driver->createConnection([
+	'dsn' => [
+		'mysql' // prefix
+		'host' => 'localhost',
+		'port' => 3306,
+		'charset' => 'utf8mb4',
+	],
+	'username' => 'username',
+	'password' => 'password',
+	'options' => [ // PDO options!
+		\PDO::ATTR_ERRMODE => \PDO::ERRMODE_SILENT,
+	],
+]);
+```
+	</TabItem>
+	<TabItem label="SQLite example">
+```php
+use NaN\Database\Drivers\SqlDriver;
+
+$sqlite_driver = new SqlDriver();
+$sqlite_connection = $sqlite_driver->createConnection([
+	'dsn' => 'sqlite::memory:',
+]);
+```
+	</TabItem>
+</Tabs>
+
+## Queries
+
+The `createConnection` method returns an instance of `\NaN\Database\Interfaces\ConnectionInterface`.
+Raw queries can be executed by calling its `raw` method.
+
+```php
+/** @var \Nan\Database\Interfaces\ConnectionInterface $connection */
+$connection->raw(/* raw query */);
+```
+
+### Query builders
+
+All `\NaN\Database\Drivers\Interfaces\DriverInterface` classes support constructing their own query builders.
+You can obtain an instance of their query builder by calling the `createQueryBuilder` method.
+
+Query builders support typical CRUD operations via the `patch`, `pull`, `purge`, and `push`.
+
+| CRUD operation | NaN operation | SQL equivalent |
+|----------------|---------------|----------------|
+| CREATE         | PUSH          | INSERT         |
+| RETRIEVE       | PULL          | SELECT         |
+| UPDATE         | PATCH         | UPDATE         |
+| DELETE         | PURGE         | DELETE         |
+
+
+#### SQL
+
+For SQL queries, the `raw` method of the connection accepts an optional, second parameter.
+The second parameter is used to bind values for prepared statements.
+An empty array will not induce a prepared statement.
+
+<Tabs>
+	<TabItem label="Prepared statement">
+```php
+/** @var \Nan\Database\Interfaces\ConnectionInterface $sql_connection */
+$sql_connection->raw('SELECT FROM `users` WHERE `id` = ?', [100]);
+```
+	</TabItem>
+	<TabItem label="Regular statement">
+```php
+/** @var \Nan\Database\Interfaces\ConnectionInterface $sql_connection */
+$sql_connection->raw('SELECT FROM `users` WHERE `id` = 100' /*, [] */);
+```
+	</TabItem>
+</Tabs>
+
+When using a query builder to construct queries, the connection will handle executing the statement.
+The query builder will provide abstract representations of queries to be digested by the connection.
+Though query builder statements will assume prepared statements,
+the same rules apply here for prepared statements as when executing raw queries.
+
+To execute statements created by the SQL query builder,
+you'll need to call the `exec` method from the SQL connection instance.
+
+```php
+/** @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder */
+$query_builder = $driver->createQueryBuilder();
+
+/** @var \NaN\Database\Query\Statements\Interfaces\StatementInterface $pull_statement */
+$pull_statement = $query_builder->pull();
+
+/** @var \Nan\Database\Sql\SqlConnection $sql_connection */
+$sql_connection->exec($pull_statement);
+```
+
+In both `exec` and `raw` cases, a `\PDOStatement` object is returned if the query succeeds.
+
+<Tabs>
+	<TabItem label="exec">
+```php
+/** @var \PDOStatement|false $pdo_statement */
+$pdo_statement = $sql_connection->exec(/* StatementInterface object */);
+```
+	</TabItem>
+	<TabItem label="raw">
+```php
+/** @var \PDOStatement|false $pdo_statement */
+$pdo_statement = $sql_connection->raw(/* raw query string */);
+```
+	</TabItem>
+</Tabs>
