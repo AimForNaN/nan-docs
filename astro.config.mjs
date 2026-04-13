@@ -10,6 +10,9 @@ export default defineConfig({
 		starlight({
 			title: 'NaN',
 			description: 'NaN micro-framework for PHP',
+			customCss: [
+				'./src/styles/global.css',
+			],
 			expressiveCode: {
 				tabWidth: 4,
 			},

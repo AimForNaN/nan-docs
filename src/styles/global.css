@@ -1,0 +1,5 @@
+:root {
+    --sl-content-gap-y: 1.25rem;
+    --sl-line-height: calc(1.75 / 1.125);
+    --sl-text-base: 1.125rem;
+}
