@@ -39,7 +39,7 @@ $app = new App(new Container([
 ]));
 ```
 
-Any interfaces and classes registered through the `Container` instance will be injected into the routes that the `App` instance manages.
+Any interfaces and classes registered through the `Container` instance will be autowired into the route handlers that the `App` instance manages.
 Therefore, any service you want access to from your routes should be registered through the `App` instance.
 
 ## Middleware

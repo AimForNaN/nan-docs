@@ -2,17 +2,12 @@
 title: Routing
 ---
 
-Routing in NaN is managed by the `NaN\App\Middleware\Router` middleware.
-It is a PSR-15-compatible middleware.
+Routing in NaN is handled by the `NaN\App\Middleware\Router` namespace.
+All routers are PSR-15-compatible middleware.
 
-```php
-use NaN\App\Middleware\Router;
+## Installation
 
-$router = new Router();
-```
-
-The `Router` instance tries to be unopinionated.
-It achieves this by accepting a PSR-15-compatible class as its single dependency.
+Comes packaged with the [application](/nan-docs/components/application/) component.
 
 ## Registering routes.
 
@@ -21,13 +16,12 @@ The default way to register routes in NaN is with the `RoutesCollection` and `Ro
 ```php
 use NaN\App\Middleware\{
 	MiddlewareCollection,
-	Router,
 	Router\Route,
 	Router\RoutesCollection,
 };
 use Psr\Http\Message\ResponseInterface;
 
-$router = new Router(new RoutesCollection(
+$router = new RoutesCollection(
 	new Route(
 		'/posts', // static path
 		function (): ResponseInterface {}, // handler
@@ -39,7 +33,7 @@ $router = new Router(new RoutesCollection(
 		function (int $id): ResponseInterface {}, // handler
 		'post', // name
 	),
-));
+);
 ```
 
 Internally, `RoutesCollection` uses a radix trie.
@@ -52,6 +46,7 @@ the part within the curly brackets is the parameter's name.
 The parameter name must obey PHP variable naming rules,
 since they will be autowired into their handlers.
 Since parameters are designed to be simple, they will match anything wherever used.
+Nevertheless, static routes will take precedence over parameterized routes.
 
 ## Controllers
 

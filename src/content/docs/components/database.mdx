@@ -83,7 +83,7 @@ Raw queries can be executed by calling its `raw` method.
 
 ```php
 /** @var \Nan\Database\Interfaces\ConnectionInterface $connection */
-$connection->raw(/* raw query */);
+$connection->raw(/* raw query string */);
 ```
 
 ### Query builders
@@ -173,7 +173,7 @@ $sql_connection->raw(
 ```
 
 In both `exec` and `raw` cases, a `\PDOStatement` object is returned if the query succeeds,
-and false if it fails.
+and `false` if it fails.
 Depending on the PDO configuration, it may also throw an exception.
 
 <Tabs>
@@ -192,6 +192,24 @@ $pdo_statement = $sql_connection->raw(/* raw query string */);
 </Tabs>
 
 ##### Patch
+
+```php
+use \NaN\Database\Sql\Query\Statements\Clauses\WhereClause;
+
+/**
+ * @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder
+ * @var \NaN\Database\Sql\Query\Statements\UpdateStatement $stmt
+ */
+$stmt = $query_builder
+	->patch('users')
+	->with([
+		'display_name' => 'NaN',
+	])
+	->where(function (WhereClause $where) {
+		$where->is('id', '=', 1);
+	})
+;
+```
 
 ##### Pull
 
