@@ -48,21 +48,24 @@ Middleware can be optionally registered through the `App` constructor.
 It will accept any PSR-15-compatible middleware.
 
 <Tabs>
-	<TabItem label="Router">
+	<TabItem label="RoutesCollection">
 ```php
-use NaN\App\Middleware\Router;
+use NaN\App\Middleware\Router\RoutesCollection;
 
-$router = new Router();
+$router = new RoutesCollection();
 
 $app = new App($services, $router);
 ```
 	</TabItem>
 	<TabItem label="MiddlewareCollection">
 ```php
-use NaN\App\Middleware\{MiddlewareCollection, Router};
+use NaN\App\Middleware\{
+	MiddlewareCollection,
+	Router\RoutesCollection,
+};
 
 $middleware = new MiddlewareCollection(
-	new Router(),
+	new RoutesCollection(),
 );
 
 $app = new App($services, $middleware);

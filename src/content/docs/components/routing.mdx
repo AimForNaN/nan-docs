@@ -4,14 +4,14 @@ title: Routing
 
 Routing in NaN is handled by the `NaN\App\Middleware\Router` namespace.
 All routers are PSR-15-compatible middleware.
+The default way to register routes in NaN is with the `RoutesCollection` router and `Route` classes.
+The `Route` class is a PSR-15-compatible request handler.
 
 ## Installation
 
 Comes packaged with the [application](/nan-docs/components/application/) component.
 
-## Registering routes.
-
-The default way to register routes in NaN is with the `RoutesCollection` and `Route` classes.
+## RoutesCollection
 
 ```php
 use NaN\App\Middleware\{
@@ -48,9 +48,9 @@ since they will be autowired into their handlers.
 Since parameters are designed to be simple, they will match anything wherever used.
 Nevertheless, static routes will take precedence over parameterized routes.
 
-## Controllers
+### Controllers
 
-NaN routers do not support specifying HTTP methods for routes.
+`Route` only supports a single handler.
 Therefore, using closures for handlers will match against all known HTTP methods.
 To handle HTTP methods individually, you'll need to make use of controllers.
 NaN provides several interfaces and traits that you should be aware of.
