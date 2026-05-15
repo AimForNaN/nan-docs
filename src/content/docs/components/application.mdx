@@ -13,7 +13,10 @@ The response will, therefrom, be sent to the client.
 ```php
 use NaN\App;
 
-$app = new App();
+$app = new App(
+	$services,
+	$middleware,
+);
 
 $app->run();
 ```
@@ -26,25 +29,47 @@ composer require aimfornan/nan
 
 ## Services
 
-Services can be optionally registered through the `App` constructor.
+Services are to be registered through the `App` constructor.
 It will accept any PSR-11-compatible containers.
 NaN provides the `Container` class from the `NaN\DI` namespace.
 You can learn more about it under [dependency injection](/nan-docs/components/dependency-injection/).
 
+Every `App` instance require the following services to be registered:
+
+ - `Psr\Http\Message\ServerRequestInterface`
+ - `Psr\Http\Message\ResponseFactoryInterface`.
+
 ```php
 use NaN\DI\Container;
+use NaN\Http\{
+	ResponseFactory,
+	ServerRequestFactory,
+};
+use Psr\Http\Message\{
+	ResponseFactoryInterface,
+	ServerRequestInterface,
+};
 
-$app = new App(new Container([
-	CustomServiceInterface::class => CustomService::class,
-]));
+$app = new App(
+	new Container([
+		ResponseFactoryInterface::class => ResponseFactory::class,
+		ServerRequestInterface::class => new ServerRequestFactory()->createServerRequest(
+			$_SERVER['REQUEST_METHOD'],
+			$_SERVER['REQUEST_URI'],
+			$_SERVER,
+		),
+	]),
+	$middleware,
+);
 ```
 
-Any interfaces and classes registered through the `Container` instance will be autowired into the route handlers that the `App` instance manages.
+Any interfaces and classes registered through the `Container` instance
+are typically autowired into the route handlers that the `App` instance manages.
 Therefore, any service you want access to from your routes should be registered through the `App` instance.
 
 ## Middleware
 
-Middleware can be optionally registered through the `App` constructor.
+Middleware are to be registered through the `App` constructor.
 It will accept any PSR-15-compatible middleware.
 
 <Tabs>
@@ -75,9 +100,9 @@ $app = new App($services, $middleware);
 
 #### Sharing data between middleware
 
-Sometimes you'll need your routes to access data created by your middleware.
+Sometimes you'll need middleware to share data among themselves.
 The `App` instance provides access to the services through the request's attributes.
-When sharing data, we recommend using delegates.
+We recommend using delegates when sharing data.
 This way we won't mess with any of the other registered services.
 
 ```php
@@ -88,9 +113,7 @@ $services = $request->getAttribute(
 	Psr\Container\ContainerInterface::class
 );
 
-if (
-	$services instanceof ContainerDelegatesInterface
-) {
+if ($services instanceof ContainerDelegatesInterface) {
 	$container = new NaN\DI\Container([
 		// Your middleware's services here...
 	]);
