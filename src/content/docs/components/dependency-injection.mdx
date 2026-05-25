@@ -1,0 +1,158 @@
+---
+title: Dependency injection
+description: \NaN\DI.
+---
+
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+In NaN, dependency injection is managed by the `NaN\DI` namespace.
+
+## Installation
+
+```shell
+composer require aimfornan/nan-di
+```
+
+## Services
+
+To deal with classes, NaN provides the `NaN\DI\Container` class, which is a PSR-11-compatible container.
+Services are registered through its constructor.
+It can accept fully-qualified class names, closures, and single instances as values.
+Single instances are used when you need to return the same instance every time.
+
+So long as the container provides the necessary dependencies,
+constructing classes from fully-qualified names for classes that depend on other classes is a simple matter.
+When more complex setups are needed, that's where closures come in.
+Closures have access to the container instance through the `$this` variable.
+
+<Tabs>
+	<TabItem label="Fully-qualified class names">
+```php
+use \NaN\DI\Container;
+
+$services = new Container([
+	SomeInterface::class => SomeClass::class,
+]);
+```
+	</TabItem>
+	<TabItem label="Closures">
+```php
+use \NaN\DI\Container;
+
+$services = new Container([
+	SomeInterface::class => function () {
+		/** @var Container $this */
+
+		// Some boilerplate...
+
+		$dependency = $this->get(SomeOtherInterface::class);
+
+		return new SomeClass(
+			$dependency,
+			...$args_from_boilerplate,
+		);
+	},
+	SomeOtherInterface::class => SomeOtherClass::class,
+]);
+```
+	</TabItem>
+	<TabItem label="Single instance">
+```php
+use \NaN\DI\Container;
+
+$services = new Container([
+	SomeInterface::class => new SomeClass(...$args),
+]);
+```
+	</TabItem>
+</Tabs>
+
+### Delegation
+
+For the `NaN\DI\Container` class, registration of services is done through its constructor
+to help maintain internal consistency.
+However, you may need to add more services that can only be added at a later time.
+Delegates are PSR-11-compatible containers that are used as secondary sources.
+When the parent container lacks a service, delegate containers can help fill in the gaps.
+This helps to maintain internal consistency.
+Priority is based on insertion.
+
+The PSR-11 standard rejects any attempt at extending the standard
+to include the ability to add services to the container.
+To help fill this gap in the standard, NaN provides interfaces to check for features.
+For delegates, there is the `NaN\DI\Interfaces\ContainerDelegatesInterface` interface.
+
+```php
+use \NaN\DI\Interfaces\ContainerDelegatesInterface;
+
+// Check if container supports adding delegates!
+if ($container instanceof ContainerDelegatesInterface) {
+	/** @var \Psr\Container\ContainerInterface[] $containers */
+	$container->addDelegates(...$containers);
+}
+```
+
+### Setters
+
+Again, to fill in the gap in the PSR-11 standard,
+we provide the `NaN\DI\Interfaces\ContainerSetterInterface` interface.
+
+```php
+use NaN\DI\Interfaces\ContainerSetterInterface;
+
+// Check if container supports setting services!
+if ($container instanceof ContainerSetterInterface) {
+	$container->set(SomeOtherInterface::class, SomeOtherClass::class);
+}
+```
+
+## Autowiring
+
+NaN provides the `NaN\DI\Arguments` class to perform autowiring.
+It supports resolving arguments for closures, class constructors and class methods.
+It can resolve arguments for most parameter cases.
+
+<Tabs>
+	<TabItem label="Closures">
+```php
+use \NaN\DI\{Arguments,Container};
+
+$closure = function (
+	int $id,
+	SomeInterface $some_class,
+) {
+	// Do something...
+};
+
+$args = Arguments::fromCallable($closure);
+$container = new Container([
+	SomeInterface::class => SomeClass::class,
+]);
+
+// Automatically converts values to the required data type!
+$resolved = $args->resolve(
+	['id' => '1'],
+	$container,
+);
+
+$closure(...$resolved);
+```
+	</TabItem>
+	<TabItem label="Class constructors">
+```php
+use \NaN\DI\Arguments;
+
+$args = Arguments::fromClassConstructor(\DateTime::class);
+$resolved = $args->resolve();
+
+$dt = new \DateTime(...$resolved);
+```
+	</TabItem>
+	<TabItem label="Class methods">
+```php
+use \NaN\DI\Arguments;
+
+$args = Arguments::fromClassMethod(SomeClass::class, 'someMethod');
+```
+	</TabItem>
+</Tabs>
