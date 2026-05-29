@@ -82,23 +82,12 @@ $app = new App($services, $middleware);
 #### Sharing data between middleware
 
 Sometimes you'll need middleware to share data among themselves.
-The `App` instance provides access to the services through the request's attributes.
-We recommend using delegates when sharing data.
-This way we won't mess with any of the other registered services.
+We recommend using the request's attributes.
 
 ```php
-use NaN\DI\Interfaces\ContainerDelegatesInterface;
-
 /** @var Psr\Http\Message\ServerRequestInterface $request */
-$services = $request->getAttribute(
-	Psr\Container\ContainerInterface::class
-);
+$request = $request->withAttribute($name, $value);
 
-if ($services instanceof ContainerDelegatesInterface) {
-	$container = new NaN\DI\Container([
-		// Your middleware's services here...
-	]);
-
-	$services->addDelegates($container);
-}
+/** @var Psr\Http\Server\RequestHandlerInterface $handler */
+$handler->handle($request);
 ```
