@@ -69,13 +69,21 @@ $services = new Container([
 
 ### Delegation
 
-For the `NaN\DI\Container` class, registration of services is done through its constructor
-to help maintain internal consistency.
-However, you may need to add more services that can only be added at a later time.
+The `NaN\DI\Container` class is designed to be immutable.
+However, sometimes you may need to add more services that can only be added at a later time.
+NaN provides the `NaN\DI\DelegatesContainer` class for adding delegates.
 Delegates are PSR-11-compatible containers that are used as secondary sources.
 When the parent container lacks a service, delegate containers can help fill in the gaps.
 This helps to maintain internal consistency.
 Priority is based on insertion.
+
+```php
+/**
+ * @var \NaN\DI\DelegatesContainer $container
+ * @var \Psr\Container\ContainerInterface[] $containers
+ */
+$container->addDelegates(...$containers);
+```
 
 The PSR-11 standard rejects any attempt at extending the standard
 to include the ability to add services to the container.
@@ -153,6 +161,10 @@ $dt = new \DateTime(...$resolved);
 use \NaN\DI\Arguments;
 
 $args = Arguments::fromClassMethod(SomeClass::class, 'someMethod');
+$resolved = $args->resolve();
+
+/** @var SomeClass $obj */
+$obj->someMethod(...$resolved);
 ```
 	</TabItem>
 </Tabs>
