@@ -23,7 +23,7 @@ Single instances are used when you need to return the same instance every time.
 So long as the container provides the necessary dependencies,
 constructing classes from fully-qualified names for classes that depend on other classes is a simple matter.
 When more complex setups are needed, that's where closures come in.
-Closures have access to the container instance through the `$this` variable.
+Closures can access other services through dependency injection.
 
 <Tabs>
 	<TabItem label="Fully-qualified class names">
@@ -40,12 +40,10 @@ $services = new Container([
 use \NaN\DI\Container;
 
 $services = new Container([
-	SomeInterface::class => function () {
-		/** @var Container $this */
-
+	SomeInterface::class => function (
+		SomeOtherInterface $dependency,
+	) {
 		// Some boilerplate...
-
-		$dependency = $this->get(SomeOtherInterface::class);
 
 		return new SomeClass(
 			$dependency,
