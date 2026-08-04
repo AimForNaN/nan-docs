@@ -10,10 +10,8 @@ For databases not supported by PDO you'll have to write your own PDO-based drive
 
 ## Installation
 
-Since the API is still experimental, you'll need to specify the Git branch in your composer configuration to install.
-
 ```shell
-composer require aimfornan/nan-db:dev-main
+composer require aimfornan/nan-db
 ```
 
 ## Drivers
@@ -29,7 +27,6 @@ To create a connection to the database, first instantiate a `NaN\Database\Sql\Dr
 Then call its `createConnection` method, providing it with the information needed to construct a PDO connection.
 The configuration must match the parameters of the `\PDO::connect` method.
 The DSN takes either an array or a string.
-If an array, the DSN prefix is to be set in the first list element.
 
 <Tabs>
 	<TabItem label="MySQL example">
@@ -39,7 +36,7 @@ use NaN\Database\Sql\Drivers\SqlDriver;
 $mysql_driver = new SqlDriver();
 $mysql_connection = $mysql_driver->createConnection([
 	'dsn' => [
-		'mysql' // prefix; zero index!
+		'prefix' => 'mysql'
 		'host' => 'localhost',
 		'port' => 3306,
 		'charset' => 'utf8mb4',

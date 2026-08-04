@@ -65,10 +65,8 @@ $app = new App($services, $router);
 	</TabItem>
 	<TabItem label="MiddlewareCollection">
 ```php
-use NaN\Application\Middleware\{
-	MiddlewareCollection,
-	Router\RoutesCollection,
-};
+use NaN\Application\Middleware\Router\RoutesCollection;
+use NaN\Collections\Middleware\MiddlewareCollection;
 
 $middleware = new MiddlewareCollection(
 	new RoutesCollection(),

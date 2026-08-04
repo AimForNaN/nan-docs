@@ -65,50 +65,64 @@ $services = new Container([
 	</TabItem>
 </Tabs>
 
+The `NaN\DI\Container` class is designed to be immutable.
+Call the `withService` method to add extra services.
+
+```php
+/** @var \NaN\DI\Container $container */
+$container = $container->withService(
+	SomeOtherInterface::class,
+	SomeOtherClass::class,
+);
+```
+
 ### Delegation
 
-The `NaN\DI\Container` class is designed to be immutable.
-However, sometimes you may need to add more services that can only be added at a later time.
-NaN provides the `NaN\DI\DelegatesContainer` class for adding delegates.
+NaN provides the `NaN\DI\DelegatesContainer` class to support delegation.
 Delegates are PSR-11-compatible containers that are used as secondary sources.
 When the parent container lacks a service, delegate containers can help fill in the gaps.
 This helps to maintain internal consistency.
 Priority is based on insertion.
 
+The `NaN\DI\DelegatesContainer` class is designed to be immutable.
+It functions the same way as the `NaN\DI\Container` class, with the added support for delegation.
+
 ```php
 /**
- * @var \NaN\DI\DelegatesContainer $container
  * @var \Psr\Container\ContainerInterface[] $containers
+ * @var array $services
  */
-$container->addDelegates(...$containers);
+$container = new DelegatesContainer($services)
+	->withDelegates(...$containers)
+;
 ```
+
+### Extending the PSR-11 standard
 
 The PSR-11 standard rejects any attempt at extending the standard
-to include the ability to add services to the container.
-To help fill this gap in the standard, NaN provides interfaces to check for features.
-For delegates, there is the `NaN\DI\Interfaces\ContainerDelegatesInterface` interface.
-
-```php
-use \NaN\DI\Interfaces\ContainerDelegatesInterface;
-
-// Check if container supports adding delegates!
-if ($container instanceof ContainerDelegatesInterface) {
-	/** @var \Psr\Container\ContainerInterface[] $containers */
-	$container->addDelegates(...$containers);
-}
-```
-
-### Setters
-
-Again, to fill in the gap in the PSR-11 standard,
+to include the ability to add services to containers.
+To help fill the gap in the PSR-11 standard,
 we provide the `NaN\DI\Interfaces\ContainerSetterInterface` interface.
+The `NaN\DI\Container` class implements this interface.
 
 ```php
 use NaN\DI\Interfaces\ContainerSetterInterface;
 
 // Check if container supports setting services!
 if ($container instanceof ContainerSetterInterface) {
-	$container->set(SomeOtherInterface::class, SomeOtherClass::class);
+	// ...
+}
+```
+
+For delegates, there is the `NaN\DI\Interfaces\ContainerDelegatesInterface` interface.
+This interface extends the `NaN\DI\Interfaces\ContainerSetterInterface` interface.
+
+```php
+use \NaN\DI\Interfaces\ContainerDelegatesInterface;
+
+// Check if container supports adding delegates!
+if ($container instanceof ContainerDelegatesInterface) {
+	// ...
 }
 ```
 
