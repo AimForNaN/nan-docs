@@ -26,7 +26,7 @@ export default defineConfig({
 			sidebar: [
 				{
 					label: 'Components',
-					autogenerate: { directory: 'components' },
+					items: [{ autogenerate: { directory: 'components' }}],
 				},
 			],
 		}),
