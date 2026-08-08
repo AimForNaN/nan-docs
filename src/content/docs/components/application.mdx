@@ -13,10 +13,7 @@ NaN provides the `NaN\Application\NativeApplication` class.
 ```php
 use NaN\Application\NativeApplication as App;
 
-$app = new App(
-	$services,
-	$middleware,
-);
+$app = new App();
 
 $app->run();
 ```
@@ -37,6 +34,25 @@ It will accept any PSR-11-compatible containers.
 NaN provides the `Container` class from the `NaN\DI` namespace.
 You can learn more about it under [dependency injection](/nan-docs/components/dependency-injection/).
 
+```php
+use NaN\DI\Container;
+
+$services = new Container();
+$app = new App($services);
+```
+
+The `Container` instance can be acquired by middleware through the request's attributes.
+
+```php
+/**
+ * @var Psr\Http\Message\ServerRequestInterface $request
+ * @var Psr\Container\ContainerInterface $services
+ */
+$services = $request->getAttribute(
+	Psr\Container\ContainerInterface::class,
+);
+```
+
 Every `NativeApplication` instance makes use of the following services if they exist:
 
  - `Psr\Http\Message\ServerRequestInterface`
@@ -44,13 +60,9 @@ Every `NativeApplication` instance makes use of the following services if they e
 
 If they don't exist, they'll make use of their own.
 
-Any interfaces and classes registered through the `Container` instance
-are typically autowired into the route handlers that the `App` instance manages.
-Therefore, any service you want access to from your routes should be registered through the `App` instance.
-
 ## Middleware
 
-Middleware are to be registered through the `App` constructor.
+App-wide middleware are to be registered through the `App` constructor.
 It will accept any PSR-15-compatible middleware.
 
 <Tabs>
