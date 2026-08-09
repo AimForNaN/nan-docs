@@ -62,8 +62,7 @@ use NaN\Http\Request\Validators\GetRequestValidator;
 $route = new Route(
 	'/',
 	function () {},
-	'home',
-	new GetRequestValidator(),
+	middleware: new GetRequestValidator(),
 );
 ```
 
@@ -85,7 +84,7 @@ class HomeController implements ControllerInterface {
 	use ControllerTrait;
 }
 
-$route = new Route('/', HomeController::class, 'home');
+$route = new Route('/', HomeController::class);
 ```
 
 The `ControllerTrait` trait judges your controllers by the controller interfaces they implement.
@@ -121,13 +120,27 @@ The [application](/nan-docs/components/application/) component autowires depende
 Unlike controllers, closures do not need to set their parameters as optional.
 
 <Tabs>
-	<TabItem label="Closures"></TabItem>
+	<TabItem label="Closures">
+		```php
+		$route = new Route(
+			'/users/{id}',
+			function (
+				int $id,
+				SomeInterface $something,
+			): ResponseInterface {},
+			'user',
+		);
+		```
+	</TabItem>
 	<TabItem label="Controllers">
 		```php
 		class UserController implements ControllerInterface {
 			use ControllerTrait;
 
-			public function get(?int $id = null): ResponseInterface {
+			public function get(
+				?int $id = null,
+				?SomeInterface $something = null,
+			): ResponseInterface {
 			}
 		}
 
