@@ -2,10 +2,12 @@
 title: Routing
 ---
 
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
 Routing in NaN is handled by the `NaN\App\Middleware\Router` namespace.
 All routers are PSR-15-compatible middleware.
 The default way to register routes in NaN is with the `RoutesCollection` router and `Route` classes.
-The `Route` class is both a PSR-15-compatible middleware and request handler.
+The `Route` class is also a PSR-15-compatible middleware.
 
 ## Installation
 
@@ -48,11 +50,28 @@ since they will be autowired into their handlers.
 Since parameters are designed to be simple, they will match anything wherever used.
 Nevertheless, static routes will take precedence over parameterized routes.
 
+### Request validators
+
+Using closures for route handlers will match against every HTTP method.
+To have routes match only against certain HTTP methods
+you can use request validators provided by the `NaN\Http` namespace as route middleware.
+
+```php
+use NaN\Http\Request\Validators\GetRequestValidator;
+
+$route = new Route(
+	'/',
+	function () {},
+	'home',
+	new GetRequestValidator(),
+);
+```
+
+For more information on request validators, see the [http](/nan-docs/components/http/) component.
+
 ### Controllers
 
-`Route` only supports a single handler.
-Therefore, using closures for handlers will match against all known HTTP methods.
-To handle HTTP methods individually, you'll need to make use of controllers.
+To have fine-tuned control over multiple HTTP methods, you'll need to make use of controllers.
 NaN provides several interfaces and traits that you should be aware of.
 
 Currently, to create a controller you'll need to implement the `ControllerInterface` interface.
@@ -96,19 +115,23 @@ use NaN\App\Controller\Traits\{
 	TraceControllerTrait,
 };
 ```
-#### Dependency injection
+### Dependency injection
 
-Method parameters are left empty for the sake of dependency injection.
-In order to satisfy the interface inheritance requirements, however,
-you'll need to make all the parameters optional.
+The [application](/nan-docs/components/application/) component autowires dependencies into routes.
+Unlike controllers, closures do not need to set their parameters as optional.
 
-```php
-class UserController implements ControllerInterface {
-	use ControllerTrait;
+<Tabs>
+	<TabItem label="Closures"></TabItem>
+	<TabItem label="Controllers">
+		```php
+		class UserController implements ControllerInterface {
+			use ControllerTrait;
 
-	public function get(?int $id = null): ResponseInterface {
-	}
-}
+			public function get(?int $id = null): ResponseInterface {
+			}
+		}
 
-$route = new Route('/users/{id}', UserController::class, 'user');
-```
+		$route = new Route('/users/{id}', UserController::class, 'user');
+		```
+	</TabItem>
+</Tabs>
