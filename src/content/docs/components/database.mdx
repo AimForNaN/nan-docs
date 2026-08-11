@@ -21,34 +21,34 @@ The configuration must match the parameters of the `\PDO::connect` method.
 
 <Tabs>
 	<TabItem label="MySQL example">
-		```php
-		use NaN\Database\Connection;
+```php
+use NaN\Database\Connection;
 
-		/** @var \Nan\Database\Interfaces\ConnectionInterface $mysql_connection */
-		$mysql_connection = Connection::connect([
-			'dsn' => [
-				'prefix' => 'mysql'
-				'host' => 'localhost',
-				'port' => 3306,
-				'charset' => 'utf8mb4',
-			],
-			'username' => 'username',
-			'password' => 'password',
-			'options' => [ // PDO options!
-				\PDO::ATTR_ERRMODE => \PDO::ERRMODE_SILENT,
-			],
-		]);
-		```
+/** @var \Nan\Database\Interfaces\ConnectionInterface $mysql_connection */
+$mysql_connection = Connection::connect([
+	'dsn' => [
+		'prefix' => 'mysql'
+		'host' => 'localhost',
+		'port' => 3306,
+		'charset' => 'utf8mb4',
+	],
+	'username' => 'username',
+	'password' => 'password',
+	'options' => [ // PDO options!
+		\PDO::ATTR_ERRMODE => \PDO::ERRMODE_SILENT,
+	],
+]);
+```
 	</TabItem>
 	<TabItem label="SQLite example">
-		```php
-		use NaN\Database\Connection;
+```php
+use NaN\Database\Connection;
 
-		/** @var \Nan\Database\Interfaces\ConnectionInterface $sqlite_connection */
-		$sqlite_connection = Connection::connect([
-			'dsn' => 'sqlite::memory:',
-		]);
-		```
+/** @var \Nan\Database\Interfaces\ConnectionInterface $sqlite_connection */
+$sqlite_connection = Connection::connect([
+	'dsn' => 'sqlite::memory:',
+]);
+```
 	</TabItem>
 </Tabs>
 
@@ -67,16 +67,16 @@ An empty array will not induce a prepared statement.
 
 <Tabs>
 	<TabItem label="Prepared statement">
-		```php
-		/** @var \Nan\Database\Connection $sql_connection */
-		$sql_connection->raw('SELECT FROM `users` WHERE `id` = ?', [100]);
-		```
+```php
+/** @var \Nan\Database\Connection $sql_connection */
+$sql_connection->raw('SELECT FROM `users` WHERE `id` = ?', [100]);
+```
 	</TabItem>
 	<TabItem label="Regular statement">
-		```php
-		/** @var \Nan\Database\Connection $sql_connection */
-		$sql_connection->raw('SELECT FROM `users` WHERE `id` = 100');
-		```
+```php
+/** @var \Nan\Database\Connection $sql_connection */
+$sql_connection->raw('SELECT FROM `users` WHERE `id` = 100');
+```
 	</TabItem>
 </Tabs>
 
@@ -121,6 +121,8 @@ $pull_statement->exec($connection);
 Bindings are handled automatically.
 As with raw statements, if the bindings are empty,
 then a regular query will be used instead of a prepared statement.
+
+#### Retrieving results
 
 In both `exec` and `raw` cases, a `\PDOStatement` object is returned if the query succeeds,
 and `false` if it fails.
@@ -170,6 +172,46 @@ $stmt = $query_builder
 
 ### Pull
 
+```php
+/**
+ * @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder
+ * @var \NaN\Database\Sql\Query\Statements\SelectStatement $stmt
+ */
+$stmt = $query_builder
+	->pull()
+	->from('users')
+	->last('id')
+;
+```
+
 ### Purge
 
+```php
+use \NaN\Database\Sql\Query\Statements\Clauses\WhereClause;
+
+/**
+ * @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder
+ * @var \NaN\Database\Sql\Query\Statements\DeleteStatement $stmt
+ */
+$stmt = $query_builder
+	->purge('users')
+	->where(function (WhereClause $where) {
+		$where->is('id', '=', 1);
+	})
+;
+```
+
 ### Push
+
+```php
+/**
+ * @var \NaN\Database\Query\Builders\Interfaces\QueryBuilderInterface $query_builder
+ * @var \NaN\Database\Sql\Query\Statements\InsertStatement $stmt
+ */
+$stmt = $query_builder
+	->push([
+		'foo' => 'bar',
+	])
+	->into('users')
+;
+```

@@ -121,30 +121,31 @@ Unlike controllers, closures do not need to set their parameters as optional.
 
 <Tabs>
 	<TabItem label="Closures">
-		```php
-		$route = new Route(
-			'/users/{id}',
-			function (
-				int $id,
-				SomeInterface $something,
-			): ResponseInterface {},
-			'user',
-		);
-		```
+```php
+$route = new Route(
+	'/users/{id}',
+	function (
+		int $id,
+		SomeInterface $something,
+	): ResponseInterface {
+	},
+	'user',
+);
+```
 	</TabItem>
 	<TabItem label="Controllers">
-		```php
-		class UserController implements ControllerInterface {
-			use ControllerTrait;
+```php
+class UserController implements ControllerInterface {
+	use ControllerTrait;
 
-			public function get(
-				?int $id = null,
-				?SomeInterface $something = null,
-			): ResponseInterface {
-			}
-		}
+	public function get(
+		?int $id = null,
+		?SomeInterface $something = null,
+	): ResponseInterface {
+	}
+}
 
-		$route = new Route('/users/{id}', UserController::class, 'user');
-		```
+$route = new Route('/users/{id}', UserController::class, 'user');
+```
 	</TabItem>
 </Tabs>
