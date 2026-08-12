@@ -3,8 +3,134 @@ title: Http
 description: \Nan\Http.
 ---
 
+The `NaN\Http` namespace provides implementations for PSR-7, PSR-15 and PSR-17 interfaces.
+
 ## Installation
 
 ```shell
 composer require aimfornan/nan-http
 ```
+
+## PSR-7 streams
+
+### FileStream
+
+```php
+new NaN\Http\Streams\FileStream('file.ext', 'r+');
+```
+
+### InputStream
+
+Reads from `php://input`.
+
+```php
+new NaN\Http\Streams\InputStream();
+```
+
+### OutputStream
+
+Writes to `php://output`.
+
+```php
+new NaN\Http\Streams\OutputStream();
+```
+
+### ResourceStream
+
+```php
+new NaN\Http\Streams\ResourceStream(\fopen('file.ext', 'r'));
+```
+
+### TempStream
+
+Reads from and writes to `php://temp`.
+
+```php
+new NaN\Http\Streams\TempStream();
+```
+
+## PSR-7 messages
+
+### Request
+
+```php
+new NaN\Http\Request(
+	'POST', // HTTP method!
+	'/', // URI!
+	new NaN\Http\Streams\TempStream(), // body!
+	[
+		'content-type' => 'application/json',
+	], // headers!
+);
+```
+
+### Response
+
+Defaults to `TempStream` for response body.
+
+```php
+new NaN\Http\Response(
+	204, // status code!
+	'No Content', // reason phrase!
+	[
+		'Accepts' => 'application/json',
+	], // headers!
+	'1.1', // protocol version!
+);
+```
+
+##### Reason phrase for status code
+
+```php
+$phrase = Response::getReasonPhraseForStatusCode(401);
+```
+
+##### JSON response
+
+```php
+/** @var \Psr\Http\Message\ResponseInterface $response */
+$response = Response::withJson($response, [
+	'foo' => 'bar',
+]);
+```
+
+##### Redirects
+
+Status code defaults to `302`.
+
+```php
+/** @var \Psr\Http\Message\ResponseInterface $response */
+$response = Response::withRedirect($response, '/', 307);
+```
+
+### ServerRequest
+
+Defaults to `InputStream` for request body.
+
+```php
+new NaN\Http\ServerRequest(
+	'POST', // HTTP method!
+	'/', // URI!
+	$_SERVER, // server parameters!
+);
+```
+
+## PSR-15 request handlers
+
+## PSR-17 factories
+
+### RequestFactory
+
+### ResponseFactory
+
+### ServerRequestFactory
+
+### StreamFactory
+
+## Request validators
+
+### GetRequestValidator
+
+### PostRequestValidator
+
+### PutRequestValidator
