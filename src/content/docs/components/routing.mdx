@@ -4,7 +4,7 @@ title: Routing
 
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-Routing in NaN is handled by the `NaN\App\Middleware\Router` namespace.
+Routing in NaN is handled by the `NaN\Application\Middleware\Router` namespace.
 All routers are PSR-15-compatible middleware.
 The default way to register routes in NaN is with the `RoutesCollection` router and `Route` classes.
 The `Route` class is also a PSR-15-compatible middleware.
@@ -16,9 +16,10 @@ Comes packaged with the [application](/nan-docs/components/application/) compone
 ## RoutesCollection
 
 ```php
-use NaN\App\Middleware\{
+use NaN\Application\Middleware\{
 	MiddlewareCollection,
 	Router\Route,
+	Router\RouteHandler,
 	Router\RoutesCollection,
 };
 use Psr\Http\Message\ResponseInterface;
@@ -26,13 +27,16 @@ use Psr\Http\Message\ResponseInterface;
 $router = new RoutesCollection(
 	new Route(
 		'/posts', // static path
-		function (): ResponseInterface {}, // handler
+		new RouteHandler(
+			function (): ResponseInterface {}, // handler
+		), // middleware
 		'posts', // name
-		new MiddlewareCollection(), // middleware
 	),
 	new Route(
 		'/posts/{id}', // parameterized path
-		function (int $id): ResponseInterface {}, // handler
+		new RouteHandler(
+			function (int $id): ResponseInterface {}, // handler
+		), // middleware
 		'post', // name
 	),
 );
@@ -47,8 +51,14 @@ When using parameterized routes,
 the part within the curly brackets is the parameter's name.
 The parameter name must obey PHP variable naming rules,
 since they will be autowired into their handlers.
-Since parameters are designed to be simple, they will match anything wherever used.
-Nevertheless, static routes will take precedence over parameterized routes.
+They can also be accessed from the from the request's query parameters.
+
+Parameters are made simple by design, requiring the parameter to fill its entire space.
+This means the path `/page-{page}` is invalid and will not generate the result you hope for.
+The proper way to do it is `/page/{page}`.
+
+Static routes will take precedence over parameterized routes.
+So, you should construct your parameterized routes while being conscious of your static routes.
 
 ### Request validators
 
@@ -57,12 +67,18 @@ To have routes match only against certain HTTP methods
 you can use request validators provided by the `NaN\Http` namespace as route middleware.
 
 ```php
+use NaN\Application\Middleware\Router\RouteHandler;
+use NaN\Collections\Middleware\MiddlewareCollection;
 use NaN\Http\Request\Validators\GetRequestValidator;
 
 $route = new Route(
 	'/',
-	function () {},
-	middleware: new GetRequestValidator(),
+	new MiddlewareCollection(
+		new GetRequestValidator(),
+		new RouteHandler(
+			function () {}, // handler
+		),
+	), // middleware
 );
 ```
 
@@ -77,14 +93,14 @@ Currently, to create a controller you'll need to implement the `ControllerInterf
 To simplify development, we provide a matching `ControllerTrait` trait.
 
 ```php
-use NaN\App\Controller\Interfaces\ControllerInterface;
-use NaN\App\Controller\Traits\ControllerTrait;
+use NaN\Application\Controller\Interfaces\ControllerInterface;
+use NaN\Application\Controller\Traits\ControllerTrait;
 
 class HomeController implements ControllerInterface {
 	use ControllerTrait;
 }
 
-$route = new Route('/', HomeController::class);
+$route = new Route('/', new HomeController());
 ```
 
 The `ControllerTrait` trait judges your controllers by the controller interfaces they implement.
@@ -93,7 +109,7 @@ It also provides placeholder methods for `GET` and `HEAD`.
 The following interfaces, along with their matching traits, are available.
 
 ```php
-use NaN\App\Controller\Interfaces\{
+use NaN\Application\Controller\Interfaces\{
 	ControllerInterface,
 	ConnectControllerInterface,
 	DeleteControllerInterface,
@@ -103,7 +119,7 @@ use NaN\App\Controller\Interfaces\{
 	PutControllerInterface,
 	TraceControllerInterface,
 };
-use NaN\App\Controller\Traits\{
+use NaN\Application\Controller\Traits\{
 	ControllerTrait,
 	ConnectControllerTrait,
 	DeleteControllerTrait,
@@ -124,11 +140,11 @@ Unlike controllers, closures do not need to set their parameters as optional.
 ```php
 $route = new Route(
 	'/users/{id}',
-	function (
+	new RouteHandler(function (
 		int $id,
 		SomeInterface $something,
 	): ResponseInterface {
-	},
+	}),
 	'user',
 );
 ```
@@ -145,7 +161,7 @@ class UserController implements ControllerInterface {
 	}
 }
 
-$route = new Route('/users/{id}', UserController::class, 'user');
+$route = new Route('/users/{id}', new UserController(), 'user');
 ```
 	</TabItem>
 </Tabs>
