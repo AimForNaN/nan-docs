@@ -37,6 +37,8 @@ new NaN\Http\Streams\OutputStream();
 
 ### ResourceStream
 
+Takes in any resource.
+
 ```php
 new NaN\Http\Streams\ResourceStream(\fopen('file.ext', 'r'));
 ```
@@ -53,6 +55,9 @@ new NaN\Http\Streams\TempStream();
 
 ### Request
 
+Body defaults to `TempStream`.
+Headers default to empty array.
+
 ```php
 new NaN\Http\Request(
 	'POST', // HTTP method!
@@ -62,6 +67,16 @@ new NaN\Http\Request(
 		'content-type' => 'application/json',
 	], // headers!
 );
+```
+
+Parse cookies from cookies string.
+
+```php
+/**
+ * @var string $cookies_header
+ * @var array $cookies
+ */
+$cookies = Request::parseCookiesFromString($cookies_header);
 ```
 
 ### Response
@@ -79,13 +94,13 @@ new NaN\Http\Response(
 );
 ```
 
-##### Reason phrase for status code
+Get reason phrase for status code.
 
 ```php
 $phrase = Response::getReasonPhraseForStatusCode(401);
 ```
 
-##### JSON response
+JSON response.
 
 ```php
 /** @var \Psr\Http\Message\ResponseInterface $response */
@@ -94,9 +109,7 @@ $response = Response::withJson($response, [
 ]);
 ```
 
-##### Redirects
-
-Status code defaults to `302`.
+Redirects. Status code defaults to `302`.
 
 ```php
 /** @var \Psr\Http\Message\ResponseInterface $response */
@@ -115,7 +128,70 @@ new NaN\Http\ServerRequest(
 );
 ```
 
+Getting headers from server parameters.
+
+```php
+$headers = ServerRequest::getHeadersFromServerParams($_SERVER);
+```
+
+Get a container service from request.
+
+```php
+/** @var ServerRequest $request */
+$service = $request->getService(
+	SomeInterface::class, // container service
+	SomeClass::class, // default value
+);
+
+/** @var ServerRequestInterface $request */
+$service = ServerRequest::getServiceFromRequest(
+	SomeInterface::class, // container service
+	$request, // server request
+	SomeClass::class, // default value
+);
+```
+
+Check if request has a container service.
+
+```php
+/**
+ * @var ServerRequestInterface $request
+ * @var bool $has_service
+ */
+$has_service = ServerRequest::requestHasService(
+	SomeInterface::class, // container service
+	$request, // server request
+);
+```
+
 ## PSR-15 request handlers
+
+### ClosureRequestHandler
+
+Turn a closure into a request handler.
+
+```php
+new \NaN\Http\Request\Handlers\ClosureRequestHandler(
+	function () {
+	},
+);
+```
+
+### NoContentRequestHandler
+
+Used to return a `204` response.
+
+```php
+new \NaN\Http\Request\Handlers\NoContentRequestHandler();
+```
+
+### NotFoundRequestHandler
+
+Used to return a `404` response.
+
+```php
+new \NaN\Http\Request\Handlers\NotFoundRequestHandler();
+```
 
 ## PSR-17 factories
 
