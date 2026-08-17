@@ -143,7 +143,7 @@ $service = $request->getService(
 	SomeClass::class, // default value
 );
 
-/** @var ServerRequestInterface $request */
+/** @var \Psr\Http\Message\ServerRequestInterface $request */
 $service = ServerRequest::getServiceFromRequest(
 	SomeInterface::class, // container service
 	$request, // server request
@@ -155,7 +155,7 @@ Check if request has a container service.
 
 ```php
 /**
- * @var ServerRequestInterface $request
+ * @var \Psr\Http\Message\ServerRequestInterface $request
  * @var bool $has_service
  */
 $has_service = ServerRequest::requestHasService(

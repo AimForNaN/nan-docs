@@ -63,6 +63,25 @@ $services = new Container([
 ]);
 ```
 	</TabItem>
+	<TabItem label="Single instance closures">
+```php
+use \NaN\DI\{Container, Singleton};
+
+$services = new Container([
+	SomeInterface::class => new Singleton(function (
+		SomeOtherInterface $dependency,
+	) {
+		// Some boilerplate...
+
+		return new SomeClass(
+			$dependency,
+			...$args_from_boilerplate,
+		);
+	}),
+	SomeOtherInterface::class => SomeOtherClass::class,
+]);
+```
+	</TabItem>
 </Tabs>
 
 The `NaN\DI\Container` class is designed to be immutable.
