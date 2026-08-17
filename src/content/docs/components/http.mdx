@@ -205,8 +205,63 @@ new \NaN\Http\Request\Handlers\NotFoundRequestHandler();
 
 ## Request validators
 
+All request validators take in one optional argument: an instance of `Nette\Schema\Elements\Structure`.
+
+### CookieRequestValidator
+
+If a schema is provided, will set the results in the request's cookie parameters.
+
+```php
+use \Nette\Schema\Expect;
+
+new \NaN\Http\Request\Validators\CookieRequestValidator(
+	Expect::array([
+		'field' => Expect::string()->required(),
+	]), // optional
+);
+```
+
 ### GetRequestValidator
+
+Check if the request method is `GET`.
+If a schema is provided, will set the results in the request's query parameters.
+
+```php
+use \Nette\Schema\Expect;
+
+new \NaN\Http\Request\Validators\GetRequestValidator(
+	Expect::array([
+		'field' => Expect::string()->required(),
+	]), // optional
+);
+```
 
 ### PostRequestValidator
 
+Check if the request method is `POST`.
+If a schema is provided, will set the results in the request's parsed body.
+
+```php
+use \Nette\Schema\Expect;
+
+new \NaN\Http\Request\Validators\PostRequestValidator(
+	Expect::array([
+		'field' => Expect::string()->required(),
+	]), // optional
+);
+```
+
 ### PutRequestValidator
+
+Check if the request method is `PUT`.
+If a schema is provided, will set the results in the request's parsed body.
+
+```php
+use \Nette\Schema\Expect;
+
+new \NaN\Http\Request\Validators\PutRequestValidator(
+	Expect::array([
+		'field' => Expect::string()->required(),
+	]), // optional
+);
+```
