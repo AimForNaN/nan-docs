@@ -16,12 +16,12 @@ Comes packaged with the [application](/nan-docs/components/application/) compone
 ## RoutesCollection
 
 ```php
-use NaN\Application\Middleware\{
-	MiddlewareCollection,
-	Router\Route,
-	Router\RouteHandler,
-	Router\RoutesCollection,
+use NaN\Application\Middleware\Router\{
+	Route,
+	RouteHandler,
+	RoutesCollection,
 };
+use NaN\Collections\Middleware\MiddlewareCollection;
 use Psr\Http\Message\ResponseInterface;
 
 $router = new RoutesCollection(
